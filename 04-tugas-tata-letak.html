@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Portal Jurnal Ilmiah — Fakultas Teknik Universitas Hasanuddin</title>
+  <meta name="description" content="Portal rujukan artikel jurnal ilmiah bidang teknik: Informatika, Elektro, Sipil, Arsitektur, dan Industri.">
+
+  <!-- [Syarat 1] Bootstrap 5 via CDN dengan atribut integrity -->
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
+        crossorigin="anonymous">
+
+  <!-- Plus Jakarta Sans: huruf rancangan Indonesia -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
+
+  <link rel="stylesheet" href="04-tugas-style.css">
+</head>
+<body>
+
+  <a class="lewati" href="#artikel">Lewati ke daftar artikel</a>
+
+  <!-- [Syarat 2] Header navigasi dari Flexbox murni (tanpa .navbar Bootstrap) -->
+  <header class="kepala" id="kepala">
+    <div class="kepala-dalam">
+      <a class="merek" href="#beranda">
+        <span class="merek-lambang" aria-hidden="true">
+          <span></span><span></span><span></span><span></span><span></span>
+        </span>
+        <span class="merek-teks">
+          <span class="merek-nama">Portal Jurnal Teknik</span>
+          <span class="merek-sub">Fakultas Teknik Universitas Hasanuddin</span>
+        </span>
+      </a>
+
+      <button class="tombol-menu" id="tombolMenu" type="button"
+              aria-expanded="false" aria-controls="menuUtama" aria-label="Buka menu">
+        <span class="tombol-menu-garis" aria-hidden="true"></span>
+      </button>
+
+      <nav class="menu" id="menuUtama" aria-label="Navigasi utama">
+        <a class="menu-tautan aktif" href="#beranda" aria-current="page">Beranda</a>
+        <a class="menu-tautan" href="#artikel">Artikel</a>
+        <a class="menu-tautan" href="#bidang">Bidang ilmu</a>
+        <a class="menu-tautan" href="#daftar-jurnal">Daftar jurnal</a>
+        <a class="menu-tautan" href="#tentang">Tentang</a>
+        <a class="menu-tautan menu-aksi" href="#tentang">Ajukan rujukan</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Bagian pembuka: pencarian dan spektrum bidang -->
+  <section class="pembuka" id="beranda" aria-labelledby="judul-pembuka">
+    <div class="pembuka-dalam">
+      <h1 id="judul-pembuka">Temukan rujukan riset teknik dalam hitungan detik</h1>
+      <p class="pembuka-ket" id="ringkasanData">Memuat data artikel…</p>
+
+      <div class="cari" role="search">
+        <label for="kolomCari" class="visually-hidden">Cari artikel</label>
+        <svg class="cari-ikon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input type="search" id="kolomCari" class="cari-kolom"
+               placeholder="Cari judul, metode, atau nama jurnal (mis. YOLOv8, beton, IoT)"
+               autocomplete="off">
+        <kbd class="cari-pintas" aria-hidden="true">/</kbd>
+      </div>
+
+      <div class="spektrum" id="bidang">
+        <p class="spektrum-judul">Sebaran artikel per bidang <span id="spektrumKet">— klik untuk menyaring</span></p>
+        <div class="spektrum-batang" id="spektrumBatang" role="group" aria-label="Saring berdasarkan bidang"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- [Syarat 3 & 4] Tata letak utama dengan CSS Grid kustom -->
+  <div class="tata-letak">
+
+    <!-- Kolom kiri: sidebar 200px -->
+    <aside class="sidebar" aria-label="Penyaring artikel">
+      <section class="blok">
+        <h2 class="blok-judul">Bidang ilmu</h2>
+        <ul class="daftar-filter" id="daftarFilter"></ul>
+      </section>
+
+      <section class="blok">
+        <h2 class="blok-judul"><label for="pilihUrut">Urutkan</label></h2>
+        <select class="pilih" id="pilihUrut">
+          <option value="bawaan">Kelompok bidang</option>
+          <option value="judul">Judul A–Z</option>
+          <option value="jurnal">Nama jurnal A–Z</option>
+        </select>
+      </section>
+
+      <section class="blok">
+        <h2 class="blok-judul">Jenis tautan</h2>
+        <div class="saklar-grup" id="grupTautan">
+          <button type="button" class="saklar aktif" data-tautan="semua" aria-pressed="true">Semua</button>
+          <button type="button" class="saklar" data-tautan="doi" aria-pressed="false">DOI</button>
+          <button type="button" class="saklar" data-tautan="situs" aria-pressed="false">Situs</button>
+        </div>
+      </section>
+
+      <button type="button" class="tombol-reset" id="tombolReset">Hapus semua penyaring</button>
+    </aside>
+
+    <!-- Kolom tengah: daftar artikel fleksibel -->
+    <main class="utama" id="artikel">
+      <div class="utama-kepala">
+        <div>
+          <h2 id="judulDaftar">Semua artikel</h2>
+          <p class="utama-hitung" id="hitungArtikel" aria-live="polite"></p>
+        </div>
+        <div class="penyaring-aktif" id="penyaringAktif"></div>
+      </div>
+
+      <!-- [Syarat 5] Grid mikro kartu Bootstrap: repeat(auto-fit, minmax()) -->
+      <div class="grid-artikel" id="gridArtikel"></div>
+
+      <div class="kosong" id="pesanKosong" hidden>
+        <p class="kosong-judul">Tidak ada artikel yang cocok</p>
+        <p>Coba kata kunci lain, atau hapus penyaring bidang dan jenis tautan.</p>
+        <button type="button" class="btn tombol-utama" id="tombolResetKosong">Hapus penyaring</button>
+      </div>
+
+      <div class="muat-lagi">
+        <button type="button" class="btn tombol-garis" id="tombolMuat">Tampilkan lebih banyak</button>
+      </div>
+    </main>
+
+    <!-- Kolom kanan: 220px -->
+    <aside class="kanan" aria-label="Informasi tambahan">
+      <section class="blok">
+        <h2 class="blok-judul">Terakhir dilihat</h2>
+        <ul class="daftar-terakhir" id="daftarTerakhir"></ul>
+        <p class="blok-kosong" id="terakhirKosong">Artikel yang kamu buka akan muncul di sini.</p>
+      </section>
+
+      <section class="blok" id="daftar-jurnal">
+        <h2 class="blok-judul">Jurnal paling sering muncul</h2>
+        <ol class="daftar-jurnal" id="daftarJurnal"></ol>
+      </section>
+
+      <section class="blok blok-info" id="tentang">
+        <h2 class="blok-judul">Tentang portal</h2>
+        <p>Portal ini menghimpun rujukan artikel dari jurnal nasional terakreditasi untuk mendukung penelitian mahasiswa Fakultas Teknik.</p>
+        <p class="blok-info-kecil">Setiap tautan mengarah ke situs jurnal atau DOI resmi.</p>
+      </section>
+    </aside>
+  </div>
+
+  <footer class="kaki">
+    <div class="kaki-dalam">
+      <div>
+        <p class="kaki-nama">Portal Jurnal Teknik</p>
+        <p>Fakultas Teknik Universitas Hasanuddin, Jl. Poros Malino km. 6, Gowa, Sulawesi Selatan</p>
+      </div>
+      <p>Prototipe antarmuka untuk tugas mandiri modul 4.</p>
+    </div>
+  </footer>
+
+  <!-- Templat kartu artikel Bootstrap (.card) yang diisi oleh JavaScript -->
+  <template id="templatKartu">
+    <article class="card kartu">
+      <div class="card-body">
+        <div class="kartu-atas">
+          <span class="kartu-bidang"></span>
+          <span class="kartu-jenis"></span>
+        </div>
+        <h3 class="card-title kartu-judul"></h3>
+        <p class="card-text kartu-jurnal"></p>
+        <p class="card-text kartu-deskripsi"></p>
+        <ul class="kartu-topik"></ul>
+      </div>
+      <div class="card-footer kartu-kaki">
+        <span class="kartu-host"></span>
+        <div class="kartu-aksi">
+          <button type="button" class="btn btn-sm tombol-garis kartu-detail">Detail</button>
+          <a class="btn btn-sm tombol-utama kartu-buka" target="_blank" rel="noopener noreferrer">Buka</a>
+        </div>
+      </div>
+    </article>
+  </template>
+
+  <!-- Modal detail artikel (komponen Bootstrap) -->
+  <div class="modal fade" id="modalDetail" tabindex="-1" aria-labelledby="modalJudul" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
+      <div class="modal-content modal-portal">
+        <div class="modal-header">
+          <span class="kartu-bidang" id="modalBidang"></span>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+        </div>
+        <div class="modal-body">
+          <h2 class="modal-title" id="modalJudul"></h2>
+          <section class="modal-deskripsi" aria-labelledby="judulDeskripsi">
+            <h3 id="judulDeskripsi">Gambaran singkat</h3>
+            <p id="modalDeskripsi"></p>
+            <p class="modal-catatan">Disusun dari judul artikel sebagai pengantar. Baca abstrak dan isi lengkapnya di situs jurnal.</p>
+          </section>
+          <dl class="modal-data">
+            <dt>Jurnal</dt><dd id="modalJurnal"></dd>
+            <dt>Tautan</dt><dd id="modalTautan"></dd>
+            <dt>Bahasa</dt><dd id="modalBahasa"></dd>
+            <dt>Topik</dt><dd><ul class="kartu-topik" id="modalTopik"></ul></dd>
+          </dl>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn tombol-garis" id="tombolSalin">Salin tautan</button>
+          <a class="btn tombol-utama" id="modalBuka" target="_blank" rel="noopener noreferrer">Buka situs jurnal</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Bootstrap untuk umpan balik salin tautan -->
+  <div class="toast-container position-fixed bottom-0 end-0 p-3">
+    <div class="toast toast-portal" id="toastSalin" role="status" aria-live="polite" aria-atomic="true">
+      <div class="toast-body" id="toastIsi">Tautan disalin ke papan klip.</div>
+    </div>
+  </div>
+
+  <!-- [Syarat 1] Bootstrap JS bundle via CDN dengan atribut integrity -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+          integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+          crossorigin="anonymous"></script>
+
+  <script>
+    /* ---------------- Data ---------------- */
+    const BIDANG = {
+      informatika: 'Teknik Informatika',
+      elektro: 'Teknik Elektro',
+      sipil: 'Teknik Sipil',
+      arsitektur: 'Arsitektur',
+      industri: 'Teknik Industri'
+    };
+
+    const JPIT = 'Jurnal Informatika: Jurnal Pengembangan IT (JPIT)';
+    const JURTIE = 'Jurnal Teknik Informatika dan Elektro (JURTIE)';
+    const TELSINAS = 'Jurnal Ilmiah Telsinas Elektro, Sipil dan Teknik Informasi';
+    const JTS_ITB = 'Jurnal Teknik Sipil ITB';
+
+    /* Gambaran singkat tiap artikel, disusun dari judulnya (urutan sama dengan DATA) */
+    const DESKRIPSI = [
+      // Teknik Informatika
+      'Penelitian ini memanfaatkan Support Vector Machine untuk memperkirakan hasil panen karet berdasarkan faktor-faktor yang memengaruhi produksi. Prediksi yang baik membantu pengelola kebun merencanakan produksi dan kebutuhan tenaga kerja dengan lebih terukur.',
+      'Membandingkan dua model pembelajaran mendalam, GFPGAN dan RestoreFormer, dalam memulihkan foto lama yang buram, bernoda, atau rusak. Kinerja keduanya dinilai untuk melihat metode mana yang lebih sesuai dipakai pada restorasi foto.',
+      'Menerapkan algoritma K-Means untuk mengelompokkan wilayah berdasarkan tingkat kerawanan bencana alam. Hasil pengelompokan dapat menjadi dasar pemetaan risiko dan penentuan prioritas mitigasi.',
+      'Mengklasifikasikan opini publik tentang relokasi Ibu Kota Nusantara ke dalam kategori sentimen menggunakan metode Naïve Bayes. Kajian ini menggambarkan kecenderungan tanggapan masyarakat terhadap kebijakan pemindahan ibu kota.',
+      'Menerapkan fungsi hash SHA-256 untuk memastikan dokumen digital tidak berubah sejak diterbitkan. Nilai hash dokumen dibandingkan untuk mendeteksi perubahan atau pemalsuan isi.',
+      'Merancang sistem informasi berbasis web bernama e-LabCare untuk membantu pengelolaan data layanan kesehatan secara digital. Sistem ini ditujukan untuk merapikan pencatatan dan mempercepat alur layanan.',
+      'Menggunakan model deteksi objek YOLOv8 untuk mengenali secara otomatis pekerja yang tidak memakai alat pelindung diri (APD) dari gambar atau video. Pendekatan ini mendukung pengawasan keselamatan kerja tanpa pemeriksaan manual terus-menerus.',
+      'Mengembangkan chatbot layanan publik berbasis AI generatif yang dipadukan dengan Retrieval-Augmented Generation (RAG). Dengan RAG, jawaban chatbot bersandar pada dokumen rujukan sehingga lebih akurat dan relevan.',
+      // Teknik Elektro
+      'Mengembangkan metode deteksi gangguan pada sistem tenaga listrik tiga fasa menggunakan jaringan saraf tiruan yang memperhitungkan arus bocor. Deteksi yang cepat dan tepat penting untuk menjaga keandalan serta keselamatan jaringan.',
+      'Menggabungkan Bayesian Optimization dengan Deep Reinforcement Learning untuk meningkatkan pelacakan titik daya maksimum (MPPT) pada sistem panel surya. Tujuannya agar panel tetap menghasilkan daya optimal meskipun radiasi matahari dan suhu berubah.',
+      'Merancang sistem penyiraman dan pemupukan tanaman otomatis berbasis mikrokontroler ESP32 yang terhubung ke Internet of Things. Sistem ini memungkinkan pemantauan dan pengendalian jarak jauh sehingga perawatan tanaman lebih efisien.',
+      'Merancang filter pasif dan filter aktif untuk menekan harmonisa yang ditimbulkan beban non-linear. Harmonisa yang berlebihan dapat menurunkan kualitas daya dan memicu panas berlebih pada peralatan listrik.',
+      'Menganalisis pengaruh ketidakseimbangan tegangan terhadap unjuk kerja motor induksi tiga fasa. Kajian ini relevan karena tegangan yang tidak seimbang dapat menurunkan efisiensi dan memperpendek umur motor.',
+      'Menerapkan pengendali PID untuk mengatur posisi lengan robot artikulasi agar bergerak tepat ke titik sasaran. Penalaan parameter PID menentukan kecepatan respons dan kestabilan gerak lengan.',
+      'Mengembangkan proteksi relai jarak berbasis digital pada saluran transmisi 150 kV. Relai jarak memperkirakan lokasi gangguan dari impedansi saluran sehingga bagian yang terganggu dapat segera diputus.',
+      'Merancang inverter satu fasa dengan teknik modulasi lebar pulsa (PWM) untuk Pembangkit Listrik Tenaga Surya off-grid. Inverter mengubah arus searah dari panel surya menjadi arus bolak-balik yang siap dipakai peralatan.',
+      // Teknik Sipil
+      'Mengkaji dan membandingkan kinerja seismik struktur pracetak yang dilengkapi isolasi dasar. Isolasi dasar meredam gaya gempa yang diteruskan ke bangunan sehingga relevan untuk wilayah rawan gempa.',
+      'Tinjauan literatur tentang teknologi self-healing pada beton ringan, yaitu kemampuan beton menutup retak kecil secara mandiri. Kajian ini merangkum pendekatan yang telah diteliti serta peluang penerapannya untuk memperpanjang umur struktur.',
+      'Menganalisis dimensi saluran drainase perkotaan agar mampu menampung debit limpasan air hujan. Perhitungan kapasitas saluran menjadi dasar usulan perbaikan untuk mengurangi genangan.',
+      'Menganalisis pengaruh kekakuan dinding pengisi terhadap simpangan antar tingkat pada struktur rangka baja. Dinding pengisi kerap diabaikan dalam perencanaan, padahal dapat mengubah perilaku struktur saat menerima beban lateral seperti gempa.',
+      'Meneliti pengaruh gradasi agregat terhadap nilai Marshall dan kekakuan (stiffness) campuran aspal. Gradasi yang tepat ikut menentukan kekuatan dan keawetan perkerasan jalan.',
+      'Menganalisis risiko keselamatan dan kesehatan kerja (K3) pada proyek pembangunan bendungan. Kajian ini mengidentifikasi potensi bahaya, menilai tingkat risikonya, dan merumuskan langkah pengendalian.',
+      'Mengevaluasi stabilisasi tanah lempung ekspansif dengan campuran kapur dan fly ash. Tanah ekspansif mudah mengembang dan menyusut sehingga perlu diperbaiki sebelum dijadikan dasar konstruksi.',
+      'Membandingkan arus kas dan efisiensi biaya antara konstruksi dinding bata ringan dan batako. Hasilnya dapat membantu pemilik proyek memilih material dinding yang paling ekonomis.',
+      // Arsitektur
+      'Mengevaluasi kinerja pencahayaan alami dan kenyamanan termal pada bangunan berfasad bioklimatik. Kajian ini menilai sejauh mana fasad yang tanggap iklim mampu memasukkan cahaya tanpa menambah panas ruangan.',
+      'Mengkaji tipologi elemen arsitektur tradisional dan cara elemen tersebut diadaptasi pada bangunan kontemporer. Kajian ini menunjukkan bagaimana identitas lokal tetap dapat hadir dalam desain masa kini.',
+      'Menganalisis pola ruang terbuka hijau (RTH) dan hubungannya dengan ruang interaksi sosial warga kota. RTH tidak hanya berfungsi ekologis, tetapi juga menjadi wadah kegiatan dan pertemuan masyarakat.',
+      'Membahas konsep pendinginan pasif pada desain rumah tinggal di iklim tropis lembap. Pendinginan pasif memanfaatkan strategi desain untuk menurunkan suhu ruang tanpa bergantung pada pendingin udara.',
+      'Menganalisis pola sirkulasi dan kualitas akustik ruang pada bangunan pusat seni modern. Kedua aspek ini menentukan kenyamanan pengunjung sekaligus kualitas pertunjukan.',
+      'Mengkaji cara pedagang kaki lima memanfaatkan dan mengambil alih ruang publik di kawasan wisata cagar budaya. Fenomena ini berkaitan erat dengan penataan kawasan dan pelestarian nilai sejarahnya.',
+      'Membahas penerapan elemen parametrik pada fasad bangunan tingkat tinggi. Desain parametrik memungkinkan bentuk fasad disesuaikan dengan kebutuhan fungsi dan estetika secara terukur.',
+      'Mengevaluasi penerapan prinsip desain universal pada fasilitas publik bagi penyandang disabilitas. Kajian ini menilai kemudahan akses agar fasilitas dapat digunakan oleh semua orang.',
+      // Teknik Industri
+      'Menilai risiko keselamatan kerja dengan memadukan metode FMEA dan HAZOP. Kedua metode membantu mengidentifikasi potensi kegagalan dan penyimpangan proses, lalu menentukan prioritas pengendaliannya.',
+      'Mengoptimalkan rantai pasok produk pangan segar menggunakan model Mixed Integer Linear Programming (MILP). Produk segar mudah rusak sehingga keputusan distribusi dan persediaan harus tepat waktu dan efisien biaya.',
+      'Menerapkan lean manufacturing dengan Value Stream Mapping untuk memetakan aliran material dan informasi pada proses produksi. Pemetaan ini membantu menemukan pemborosan dan merancang perbaikan proses.',
+      'Mengukur produktivitas tenaga kerja dengan metode Objective Matrix (OMAX). Metode ini menggabungkan beberapa kriteria produktivitas menjadi satu indikator sehingga kinerja dapat dipantau dan dievaluasi.',
+      'Menganalisis ergonomi stasiun kerja perakitan dengan Nordic Body Map dan Rapid Upper Limb Assessment (RULA). Keluhan otot dan postur kerja dinilai untuk merumuskan perbaikan yang mengurangi risiko cedera.',
+      'Merancang tata letak fasilitas pabrik menggunakan algoritma CRAFT. Algoritma ini mencari susunan departemen yang meminimalkan jarak dan ongkos perpindahan material.',
+      'Mengendalikan kualitas produk dengan Statistical Process Control (SPC) dan Six Sigma. Kedua pendekatan membantu memantau variasi proses, menemukan penyebab cacat, dan menekan jumlah produk cacat.',
+      'Menentukan ukuran lot pemesanan bahan baku yang optimal dengan model Economic Order Quantity (EOQ). Model ini menyeimbangkan biaya pemesanan dan biaya penyimpanan agar total biaya persediaan minimum.'
+    ];
+
+    const DATA = [
+      // Teknik Informatika
+      ['informatika', 'Prediksi Hasil Panen Karet Menggunakan Support Vector Machine', JPIT, 'ejournal.poltekharber.ac.id/index.php/informatika', ['SVM', 'Prediksi']],
+      ['informatika', 'Analisis Perbandingan Kinerja Metode GFPGAN dan RestoreFormer dalam Restorasi Foto Lama', JPIT, 'doi.org/10.30591/jpit.v11i2.10291', ['GFPGAN', 'RestoreFormer', 'Pengolahan citra']],
+      ['informatika', 'Penerapan Algoritma K-Means Clustering untuk Pengelompokan Tingkat Kerawanan Bencana Alam', 'Jurnal RESTI (Rekayasa Sistem dan Teknologi Informasi)', 'jurnal.iaii.or.id/index.php/RESTI', ['K-Means', 'Clustering']],
+      ['informatika', 'Analisis Sentimen Opini Publik Mengenai Relokasi IKN Menggunakan Naïve Bayes', JURTIE, 'jurnal.politeknik-ptp.ac.id/index.php/jurtie', ['Naïve Bayes', 'Analisis sentimen']],
+      ['informatika', 'Implementasi Algoritma Cryptography SHA-256 untuk Validasi Integritas Dokumen Digital', JURTIE, 'jurnal.politeknik-ptp.ac.id/index.php/jurtie', ['SHA-256', 'Kriptografi']],
+      ['informatika', 'Sistem Informasi Manajemen Kesehatan e-LabCare Berbasis Web', 'Jurnal Pengembangan Teknologi Informasi dan Ilmu Komputer (JPTIIK) UB', 'j-ptiik.ub.ac.id', ['Sistem informasi', 'Web']],
+      ['informatika', 'Penerapan Object Detection YOLOv8 untuk Deteksi Pelanggaran APD', 'JUITA: Jurnal Informatika', 'jurnalnational.ump.ac.id/index.php/JUITA', ['YOLOv8', 'Deteksi objek']],
+      ['informatika', 'Pengembangan Chatbot Pelayanan Publik Berbasis Generative AI dengan RAG', 'INTENSIF: Jurnal Ilmiah Penelitian dan Penerapan Teknologi Sistem Informasi', 'ojs.uniska-bjm.ac.id/index.php/INTENSIF', ['Generative AI', 'RAG', 'Chatbot']],
+      // Teknik Elektro
+      ['elektro', 'Leakage-Aware Fault Detection in Three-Phase Power Systems Using Artificial Neural Network', 'Jurnal Teknik Elektro - UNNES', 'journal.unnes.ac.id/sju/jte', ['ANN', 'Deteksi gangguan'], 'en'],
+      ['elektro', 'Hybrid Bayesian Optimization and Deep Reinforcement Learning for Enhanced MPPT in PV Systems', 'Emitor: Jurnal Teknik Elektro', 'journals.ums.ac.id/index.php/emitor', ['Deep RL', 'MPPT', 'Fotovoltaik'], 'en'],
+      ['elektro', 'Rancang Bangun Sistem Penyiraman dan Pemupukan Otomatis Berbasis ESP32 dan IoT', TELSINAS, 'ejournal.unkhair.ac.id/index.php/telsinas', ['ESP32', 'IoT']],
+      ['elektro', 'Desain Filter Pasif dan Aktif untuk Mereduksi Harmonisasi Beban Non-Linear', 'JNTETI (Jurnal Nasional Teknik Elektro dan Teknologi Informasi) UGM', 'ejournal.ugm.ac.id/jnteti', ['Filter harmonisa', 'Kualitas daya']],
+      ['elektro', 'Analisis Unjuk Kerja Motor Induksi Tiga Fasa Akibat Ketidakseimbangan Tegangan', 'Jurnal Teknik Elektro dan Komputer (TRIAC)', 'journal.trunojoyo.ac.id/triac', ['Motor induksi', 'Tegangan']],
+      ['elektro', 'Implementasi Algoritma PID pada Kendali Posisi Lengan Robot Artikulasi', 'Jurnal Otomasi Kontrol dan Instrumentasi', 'jurnal.itb.ac.id/index.php/joki', ['PID', 'Robotika']],
+      ['elektro', 'Pengembangan Proteksi Relai Jarak Berbasis Digital pada Saluran Transmisi 150 kV', 'Jurnal Rekayasa Elektrika', 'jurnal.usk.ac.id/JRE', ['Relai jarak', 'Transmisi']],
+      ['elektro', 'Perancangan Inverter Satu Fasa Berbasis PWM untuk PLTS Off-Grid', 'KINETIK: Game Intelligence, System, Networks, and Electronics', 'kinetik.umm.ac.id', ['Inverter', 'PWM', 'PLTS']],
+      // Teknik Sipil
+      ['sipil', 'Analisis Perbandingan Kinerja Seismik Struktur Pracetak dengan Isolasi Dasar', JTS_ITB, 'journals.itb.ac.id/index.php/jts', ['Seismik', 'Isolasi dasar']],
+      ['sipil', 'Penerapan Teknologi Self-Healing pada Beton Ringan: Tinjauan Literatur', JTS_ITB, 'doi.org/10.5614/jts.2025.32.2.14', ['Self-healing', 'Beton ringan', 'Tinjauan literatur']],
+      ['sipil', 'Analisis Dimensi Saluran Drainase Perkotaan untuk Penanggulangan Genangan', TELSINAS, 'ejournal.unkhair.ac.id/index.php/telsinas', ['Drainase', 'Genangan']],
+      ['sipil', 'Analisis Pengaruh Kekakuan Dinding Pengisi Terhadap Simpangan Antar Tingkat Rangka Baja', TELSINAS, 'ejournal.unkhair.ac.id/index.php/telsinas', ['Struktur baja', 'Dinding pengisi']],
+      ['sipil', 'Pengaruh Gradasi Agregat Terhadap Nilai Marshall dan Stiffness Campuran Aspal', 'Jurnal Teknik Jalan-Jembatan', 'ejournal.balitbang.pu.go.id', ['Aspal', 'Marshall']],
+      ['sipil', 'Analisis Manajemen Risiko Keselamatan dan Kesehatan Kerja (K3) Proyek Bendungan', 'Jurnal Manajemen Aset Infrastruktur & Fasilitas', 'ejournal.its.ac.id/index.php/jmaif', ['K3', 'Manajemen risiko']],
+      ['sipil', 'Evaluasi Stabilisasi Tanah Lempung Ekspansif Menggunakan Kapur dan Fly Ash', 'Jurnal Rekayasa Sipil (JRS) Unand', 'jrs.ft.unand.ac.id', ['Geoteknik', 'Fly ash']],
+      ['sipil', 'Analisis Cash Flow dan Efisiensi Biaya Konstruksi Bata Ringan vs Batako', 'Jurnal Rekayasa Teknis Sipil', 'ejournal.unesa.ac.id/index.php/rekayasa-teknik-sipil', ['Biaya konstruksi', 'Cash flow']],
+      // Arsitektur
+      ['arsitektur', 'Evaluasi Kinerja Pencahayaan Alami dan Kenyamanan Termal Fasad Bioklimatik', 'Jurnal Arsitektur Komposisi', 'ojs.uajy.ac.id/index.php/KOMPOSISI', ['Pencahayaan alami', 'Kenyamanan termal']],
+      ['arsitektur', 'Tipologi Elemen Arsitektur Tradisional dan Adaptasinya pada Bangunan Kontemporer', 'NALARS: Jurnal Arsitektur', 'jurnal.umj.ac.id/index.php/nalars', ['Arsitektur tradisional', 'Tipologi']],
+      ['arsitektur', 'Analisis Pola Ruang Terbuka Hijau (RTH) dan Ruang Interaksi Sosial Kota', 'Langkau Betang: Jurnal Arsitektur', 'jurnal.untan.ac.id/index.php/jlb', ['RTH', 'Ruang kota']],
+      ['arsitektur', 'Konsep Passive Cooling pada Desain Rumah Tinggal Iklim Tropis Lembap', 'Tekstur (Jurnal Arsitektur)', 'ejournal.ust.ac.id', ['Passive cooling', 'Iklim tropis']],
+      ['arsitektur', 'Pola Sirkulasi dan Akustik Ruang pada Bangunan Pusat Seni Modern', 'Jurnal Sains dan Teknologi Arsitektur', 'ejournal.upi.edu/index.php/sta', ['Akustik', 'Sirkulasi']],
+      ['arsitektur', 'Apropriasi Ruang Publik oleh Pedagang Kaki Lima pada Kawasan Wisata Cagar Budaya', 'Jurnal Koridor', 'talenta.usu.ac.id/koridor', ['Ruang publik', 'Cagar budaya']],
+      ['arsitektur', 'Penerapan Elemen Parametrik pada Fasad Bangunan Tingkat Tinggi', 'ARTEKS: Jurnal Teknik Arsitektur', 'arteks.or.id', ['Parametrik', 'Fasad']],
+      ['arsitektur', 'Evaluasi Accessibility Universal Design bagi Penyandang Disabilitas pada Fasilitas Publik', 'Jurnal Arsitektur ZONASI', 'ejournal.upi.edu/index.php/zonasi', ['Universal design', 'Aksesibilitas']],
+      // Teknik Industri
+      ['industri', 'Penilaian Risiko Keselamatan Kerja Menggunakan Metode FMEA dan HAZOP', 'Jurnal Teknik Industri (JTI)', 'ejournal.umm.ac.id/index.php/industri', ['FMEA', 'HAZOP', 'K3']],
+      ['industri', 'Optimasi Rantai Pasok Produk Pangan Segar Menggunakan Model MILP', 'Jurnal Teknik Industri Undip', 'ejournal.undip.ac.id/index.php/jgti', ['MILP', 'Rantai pasok']],
+      ['industri', 'Penerapan Lean Manufacturing dengan Metode Value Stream Mapping (VSM)', 'Jurnal Rekayasa Sistem Industri (JRSI)', 'journal.unpar.ac.id/index.php/jrsi', ['Lean', 'VSM']],
+      ['industri', 'Pengukuran Produktivitas Tenaga Kerja Menggunakan Metode Objective Matrix (OMAX)', 'Jurnal Sistem Teknik Industri (JSTI)', 'talenta.usu.ac.id/jsti', ['OMAX', 'Produktivitas']],
+      ['industri', 'Analisis Ergonomi Stasiun Kerja Perakitan Menggunakan Metode Nordic Body Map dan RULA', 'Jurnal Ergonomi dan K3', 'ejournal.undip.ac.id/index.php/jkli', ['Ergonomi', 'RULA', 'Nordic Body Map']],
+      ['industri', 'Perancangan Tata Letak Fasilitas Pabrik Menggunakan Algoritma CRAFT', 'Performa: Media Ilmiah Teknik Industri', 'jurnal.uns.ac.id/performa', ['CRAFT', 'Tata letak fasilitas']],
+      ['industri', 'Pengendalian Kualitas Produk Menggunakan Metode SPC dan Six Sigma', 'Jurnal Teknik Industri UAJY', 'ojs.uajy.ac.id/index.php/jti', ['SPC', 'Six Sigma']],
+      ['industri', 'Penentuan Jumlah Lot Pemesanan Bahan Baku Optimal dengan Model EOQ', 'Operations Research: International Journal', 'orij.or.id', ['EOQ', 'Persediaan']]
+    ].map(([bidang, judul, jurnal, tautan, topik, bahasa = 'id'], i) => ({
+      id: i + 1,
+      bidang, judul, jurnal, topik, bahasa,
+      deskripsi: DESKRIPSI[i],
+      tautan: 'https://' + tautan,
+      tampilTautan: tautan,
+      jenis: tautan.startsWith('doi.org') ? 'doi' : 'situs'
+    }));
+
+    /* ---------------- Keadaan ---------------- */
+    const LANGKAH = 12;
+    const keadaan = { bidang: 'semua', kueri: '', urut: 'bawaan', tautan: 'semua', batas: LANGKAH };
+
+    const $ = (id) => document.getElementById(id);
+    const grid = $('gridArtikel');
+    const templat = $('templatKartu');
+    const normal = (t) => t.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
+    /* ---------------- Penyaringan ---------------- */
+    function cocokKueri(a) {
+      if (!keadaan.kueri) return true;
+      const teks = normal([a.judul, a.jurnal, BIDANG[a.bidang], a.topik.join(' '), a.deskripsi].join(' '));
+      return normal(keadaan.kueri).split(/\s+/).every((kata) => teks.includes(kata));
+    }
+
+    function cocokTautan(a) {
+      return keadaan.tautan === 'semua' || a.jenis === keadaan.tautan;
+    }
+
+    function hasilDasar() {
+      return DATA.filter((a) => cocokKueri(a) && cocokTautan(a));
+    }
+
+    function hasilAkhir() {
+      const hasil = hasilDasar().filter((a) => keadaan.bidang === 'semua' || a.bidang === keadaan.bidang);
+      if (keadaan.urut === 'judul') hasil.sort((x, y) => x.judul.localeCompare(y.judul, 'id'));
+      if (keadaan.urut === 'jurnal') hasil.sort((x, y) => x.jurnal.localeCompare(y.jurnal, 'id'));
+      return hasil;
+    }
+
+    /* Menandai kata kunci pada judul tanpa innerHTML */
+    function isiSorot(el, teks) {
+      el.textContent = '';
+      const kata = keadaan.kueri.trim().toLowerCase().split(/\s+/).filter(Boolean);
+      if (!kata.length) { el.textContent = teks; return; }
+      const pola = new RegExp('(' + kata.map((k) => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|') + ')', 'gi');
+      teks.split(pola).forEach((bagian) => {
+        if (!bagian) return;
+        if (kata.includes(bagian.toLowerCase())) {
+          const tanda = document.createElement('mark');
+          tanda.textContent = bagian;
+          el.appendChild(tanda);
+        } else {
+          el.appendChild(document.createTextNode(bagian));
+        }
+      });
+    }
+
+    /* ---------------- Render kartu ---------------- */
+    function buatKartu(a, urutan) {
+      const kartu = templat.content.firstElementChild.cloneNode(true);
+      kartu.dataset.bidang = a.bidang;
+      kartu.style.setProperty('--tunda', Math.min(urutan, 11) * 30 + 'ms');
+      kartu.querySelector('.kartu-bidang').textContent = BIDANG[a.bidang];
+      kartu.querySelector('.kartu-jenis').textContent = (a.jenis === 'doi' ? 'DOI' : 'Situs jurnal') + (a.bahasa === 'en' ? ' · EN' : '');
+      isiSorot(kartu.querySelector('.kartu-judul'), a.judul);
+      kartu.querySelector('.kartu-jurnal').textContent = a.jurnal;
+      isiSorot(kartu.querySelector('.kartu-deskripsi'), a.deskripsi);
+      const ul = kartu.querySelector('.kartu-topik');
+      a.topik.forEach((t) => {
+        const li = document.createElement('li');
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.textContent = t;
+        b.addEventListener('click', () => setKueri(t));
+        li.appendChild(b);
+        ul.appendChild(li);
+      });
+      kartu.querySelector('.kartu-host').textContent = a.tampilTautan.split('/')[0];
+      const buka = kartu.querySelector('.kartu-buka');
+      buka.href = a.tautan;
+      buka.setAttribute('aria-label', 'Buka ' + a.judul + ' di tab baru');
+      buka.addEventListener('click', () => catatTerakhir(a.id));
+      kartu.querySelector('.kartu-detail').addEventListener('click', () => bukaDetail(a));
+      return kartu;
+    }
+
+    function render() {
+      const hasil = hasilAkhir();
+      const tampil = hasil.slice(0, keadaan.batas);
+
+      grid.replaceChildren(...tampil.map(buatKartu));
+      $('pesanKosong').hidden = hasil.length > 0;
+      $('tombolMuat').hidden = hasil.length <= keadaan.batas;
+      $('tombolMuat').textContent = `Tampilkan ${Math.min(LANGKAH, hasil.length - keadaan.batas)} artikel lagi`;
+      $('hitungArtikel').textContent = `Menampilkan ${tampil.length} dari ${hasil.length} artikel`;
+      $('judulDaftar').textContent = keadaan.bidang === 'semua' ? 'Semua artikel' : BIDANG[keadaan.bidang];
+
+      renderPenyaring();
+      renderSpektrum();
+      renderPenyaringAktif();
+    }
+
+    /* Filter bidang di sidebar */
+    function renderPenyaring() {
+      const dasar = hasilDasar();
+      const daftar = [['semua', 'Semua bidang', dasar.length]].concat(
+        Object.keys(BIDANG).map((k) => [k, BIDANG[k], dasar.filter((a) => a.bidang === k).length])
+      );
+      $('daftarFilter').replaceChildren(...daftar.map(([kunci, nama, jumlah]) => {
+        const li = document.createElement('li');
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'filter' + (keadaan.bidang === kunci ? ' aktif' : '');
+        b.dataset.bidang = kunci;
+        b.setAttribute('aria-pressed', String(keadaan.bidang === kunci));
+        const titik = document.createElement('span');
+        titik.className = 'filter-titik';
+        const label = document.createElement('span');
+        label.className = 'filter-nama';
+        label.textContent = nama;
+        const angka = document.createElement('span');
+        angka.className = 'filter-angka';
+        angka.textContent = jumlah;
+        b.append(titik, label, angka);
+        b.addEventListener('click', () => setBidang(kunci));
+        li.appendChild(b);
+        return li;
+      }));
+    }
+
+    /* Batang spektrum: lebar tiap segmen mengikuti jumlah hasil */
+    function renderSpektrum() {
+      const dasar = hasilDasar();
+      const wadah = $('spektrumBatang');
+      wadah.replaceChildren(...Object.keys(BIDANG).map((k) => {
+        const jumlah = dasar.filter((a) => a.bidang === k).length;
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'segmen' + (keadaan.bidang === k ? ' aktif' : '') + (jumlah === 0 ? ' nol' : '');
+        b.dataset.bidang = k;
+        b.style.flexGrow = jumlah;
+        b.disabled = jumlah === 0;
+        b.setAttribute('aria-pressed', String(keadaan.bidang === k));
+        b.setAttribute('aria-label', `${BIDANG[k]}: ${jumlah} artikel`);
+        const nama = document.createElement('span');
+        nama.className = 'segmen-nama';
+        nama.textContent = BIDANG[k].replace('Teknik ', '');
+        const angka = document.createElement('span');
+        angka.className = 'segmen-angka';
+        angka.textContent = jumlah;
+        b.append(nama, angka);
+        b.addEventListener('click', () => {
+          setBidang(keadaan.bidang === k ? 'semua' : k);
+          document.getElementById('artikel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+        return b;
+      }));
+      $('spektrumKet').textContent = keadaan.kueri
+        ? `— ${dasar.length} hasil untuk “${keadaan.kueri}”`
+        : '— klik untuk menyaring';
+    }
+
+    /* Label penyaring aktif yang bisa dihapus satu per satu */
+    function renderPenyaringAktif() {
+      const label = [];
+      if (keadaan.kueri) label.push(['Kata kunci: ' + keadaan.kueri, () => setKueri('')]);
+      if (keadaan.bidang !== 'semua') label.push([BIDANG[keadaan.bidang], () => setBidang('semua')]);
+      if (keadaan.tautan !== 'semua') label.push([keadaan.tautan === 'doi' ? 'Hanya DOI' : 'Hanya situs jurnal', () => setTautan('semua')]);
+      $('penyaringAktif').replaceChildren(...label.map(([teks, hapus]) => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'label-aktif';
+        b.setAttribute('aria-label', 'Hapus penyaring ' + teks);
+        b.textContent = teks;
+        b.addEventListener('click', hapus);
+        return b;
+      }));
+    }
+
+    /* ---------------- Pengubah keadaan ---------------- */
+    function setBidang(k) { keadaan.bidang = k; keadaan.batas = LANGKAH; render(); }
+    function setKueri(q) {
+      keadaan.kueri = q; keadaan.batas = LANGKAH;
+      $('kolomCari').value = q;
+      render();
+    }
+    function setTautan(t) {
+      keadaan.tautan = t; keadaan.batas = LANGKAH;
+      document.querySelectorAll('.saklar').forEach((s) => {
+        const aktif = s.dataset.tautan === t;
+        s.classList.toggle('aktif', aktif);
+        s.setAttribute('aria-pressed', String(aktif));
+      });
+      render();
+    }
+    function resetSemua() {
+      keadaan.bidang = 'semua'; keadaan.urut = 'bawaan';
+      $('pilihUrut').value = 'bawaan';
+      setTautan('semua');
+      setKueri('');
+    }
+
+    let jedaCari;
+    $('kolomCari').addEventListener('input', (e) => {
+      clearTimeout(jedaCari);
+      jedaCari = setTimeout(() => { keadaan.kueri = e.target.value.trim(); keadaan.batas = LANGKAH; render(); }, 150);
+    });
+    $('pilihUrut').addEventListener('change', (e) => { keadaan.urut = e.target.value; render(); });
+    document.querySelectorAll('.saklar').forEach((s) => s.addEventListener('click', () => setTautan(s.dataset.tautan)));
+    $('tombolReset').addEventListener('click', resetSemua);
+    $('tombolResetKosong').addEventListener('click', resetSemua);
+    $('tombolMuat').addEventListener('click', () => { keadaan.batas += LANGKAH; render(); });
+
+    // Pintasan "/" untuk langsung mengetik di kolom cari
+    document.addEventListener('keydown', (e) => {
+      if (e.key === '/' && !['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName)) {
+        e.preventDefault();
+        $('kolomCari').focus();
+      }
+    });
+
+    /* ---------------- Modal detail & toast ---------------- */
+    const modal = new bootstrap.Modal($('modalDetail'));
+    const toast = new bootstrap.Toast($('toastSalin'), { delay: 2200 });
+    let artikelAktif = null;
+
+    function bukaDetail(a) {
+      artikelAktif = a;
+      $('modalDetail').dataset.bidang = a.bidang;
+      $('modalBidang').textContent = BIDANG[a.bidang];
+      $('modalJudul').textContent = a.judul;
+      $('modalDeskripsi').textContent = a.deskripsi;
+      $('modalJurnal').textContent = a.jurnal;
+      $('modalTautan').textContent = a.tampilTautan;
+      $('modalBahasa').textContent = a.bahasa === 'en' ? 'Inggris' : 'Indonesia';
+      $('modalTopik').replaceChildren(...a.topik.map((t) => {
+        const li = document.createElement('li');
+        const s = document.createElement('span');
+        s.textContent = t;
+        li.appendChild(s);
+        return li;
+      }));
+      $('modalBuka').href = a.tautan;
+      catatTerakhir(a.id);
+      modal.show();
+    }
+
+    $('modalBuka').addEventListener('click', () => modal.hide());
+    $('tombolSalin').addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(artikelAktif.tautan);
+        $('toastIsi').textContent = 'Tautan disalin ke papan klip.';
+      } catch (err) {
+        $('toastIsi').textContent = 'Tautan tidak dapat disalin. Salin manual: ' + artikelAktif.tampilTautan;
+      }
+      toast.show();
+    });
+
+    /* ---------------- Terakhir dilihat ---------------- */
+    let terakhir = [];
+    try { terakhir = JSON.parse(localStorage.getItem('portal-terakhir')) || []; } catch (err) { terakhir = []; }
+
+    function catatTerakhir(id) {
+      terakhir = [id, ...terakhir.filter((x) => x !== id)].slice(0, 4);
+      try { localStorage.setItem('portal-terakhir', JSON.stringify(terakhir)); } catch (err) { /* abaikan */ }
+      renderTerakhir();
+    }
+
+    function renderTerakhir() {
+      const item = terakhir.map((id) => DATA.find((a) => a.id === id)).filter(Boolean);
+      $('terakhirKosong').hidden = item.length > 0;
+      $('daftarTerakhir').replaceChildren(...item.map((a) => {
+        const li = document.createElement('li');
+        li.dataset.bidang = a.bidang;
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.textContent = a.judul;
+        b.addEventListener('click', () => bukaDetail(a));
+        li.appendChild(b);
+        return li;
+      }));
+    }
+
+    /* ---------------- Jurnal paling sering muncul ---------------- */
+    function renderJurnal() {
+      const hitung = {};
+      DATA.forEach((a) => { hitung[a.jurnal] = (hitung[a.jurnal] || 0) + 1; });
+      const teratas = Object.entries(hitung).sort((x, y) => y[1] - x[1] || x[0].localeCompare(y[0])).slice(0, 5);
+      $('daftarJurnal').replaceChildren(...teratas.map(([nama, n]) => {
+        const li = document.createElement('li');
+        const b = document.createElement('button');
+        b.type = 'button';
+        const t = document.createElement('span');
+        t.textContent = nama;
+        const k = document.createElement('small');
+        k.textContent = n + ' artikel';
+        b.append(t, k);
+        b.addEventListener('click', () => {
+          setKueri(nama);
+          document.getElementById('artikel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+        li.appendChild(b);
+        return li;
+      }));
+      $('ringkasanData').textContent =
+        `${DATA.length} artikel dari ${Object.keys(hitung).length} jurnal nasional, mencakup ${Object.keys(BIDANG).length} bidang teknik. Cari berdasarkan judul, metode, atau nama jurnal.`;
+    }
+
+    /* ---------------- Navigasi dinamis ---------------- */
+    const tombolMenu = $('tombolMenu');
+    const menu = $('menuUtama');
+    const kepala = $('kepala');
+
+    function aturMenu(buka) {
+      menu.classList.toggle('terbuka', buka);
+      tombolMenu.classList.toggle('terbuka', buka);
+      tombolMenu.setAttribute('aria-expanded', String(buka));
+      tombolMenu.setAttribute('aria-label', buka ? 'Tutup menu' : 'Buka menu');
+    }
+
+    tombolMenu.addEventListener('click', () => aturMenu(!menu.classList.contains('terbuka')));
+    menu.querySelectorAll('.menu-tautan').forEach((t) => t.addEventListener('click', () => aturMenu(false)));
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') aturMenu(false); });
+
+    // Header mengecil dan diberi bayangan saat digulir
+    const cekGulir = () => kepala.classList.toggle('tergulir', window.scrollY > 10);
+    window.addEventListener('scroll', cekGulir, { passive: true });
+    cekGulir();
+
+    // Tautan menu aktif mengikuti bagian yang sedang terlihat
+    const bagian = ['beranda', 'artikel', 'daftar-jurnal', 'tentang']
+      .map((id) => document.getElementById(id)).filter(Boolean);
+    const pengamat = new IntersectionObserver((entri) => {
+      entri.forEach((e) => {
+        if (!e.isIntersecting) return;
+        menu.querySelectorAll('.menu-tautan:not(.menu-aksi)').forEach((t) => {
+          const cocok = t.getAttribute('href') === '#' + e.target.id;
+          t.classList.toggle('aktif', cocok);
+          if (cocok) t.setAttribute('aria-current', 'page'); else t.removeAttribute('aria-current');
+        });
+      });
+    }, { rootMargin: '-45% 0px -50% 0px' });
+    bagian.forEach((b) => pengamat.observe(b));
+
+    /* ---------------- Mulai ---------------- */
+    renderJurnal();
+    renderTerakhir();
+    render();
+  </script>
+</body>
+</html>
